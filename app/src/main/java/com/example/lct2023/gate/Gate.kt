@@ -9,7 +9,7 @@ import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.util.concurrent.TimeUnit
 
-class Gate {
+open class Gate {
     private val httpClient: OkHttpClient
     private val cookieJar: CookieJar
     private var cookie: MutableList<Cookie> = mutableListOf()
@@ -131,7 +131,7 @@ class Gate {
         }
     }
 
-    private fun makeGetRequest(
+    fun makeGetRequest(
         url: String,
         query: Map<String, String> = mapOf()
     ): String {

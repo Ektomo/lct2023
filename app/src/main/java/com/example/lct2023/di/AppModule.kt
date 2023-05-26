@@ -1,8 +1,11 @@
 package com.example.lct2023.di
 
+import android.app.Application
 import android.content.Context
 import com.example.lct2023.LctDataStore
 import com.example.lct2023.gate.Gate
+import com.example.lct2023.gate.LctGate
+import com.example.lct2023.util.VoiceRecognizer
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -23,6 +26,14 @@ object AppModule {
 
     @Singleton
     @Provides
-    fun provideGate(): Gate = Gate()
+    fun provideVoiceRecognitionApp(
+        @ApplicationContext app: Context
+    ): VoiceRecognizer = VoiceRecognizer(app)
+
+    @Singleton
+    @Provides
+    fun provideGate(): LctGate = LctGate()
+
+
 
 }
