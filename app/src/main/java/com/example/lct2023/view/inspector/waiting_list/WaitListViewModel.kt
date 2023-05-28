@@ -11,3 +11,4 @@ class WaitListViewModel @Inject constructor(
     private val gate: LctGate
 ): ViewModel() {
 }
+

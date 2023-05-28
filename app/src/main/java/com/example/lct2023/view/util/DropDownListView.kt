@@ -30,13 +30,13 @@ import com.example.lct2023.ui.theme.interFontFamily
 import kotlinx.coroutines.delay
 
 
-interface DropDownItem {
+interface CustomListDropDownEntity {
     val name: String
 }
 
-fun String.toDropdownItem(): DropDownItem {
+fun String.toDropdownItem(): CustomListDropDownEntity {
     val s = this
-    return object : DropDownItem {
+    return object : CustomListDropDownEntity {
         override val name: String
             get() = s
     }
@@ -46,9 +46,9 @@ fun String.toDropdownItem(): DropDownItem {
 fun DropdownListView(
     modifier: Modifier,
     itemModifier: Modifier = Modifier,
-    items: List<DropDownItem>,
+    items: List<CustomListDropDownEntity>,
     defaultText: String = "Выберите",
-    onSelect: (DropDownItem) -> String?
+    onSelect: (CustomListDropDownEntity) -> String?
 ) {
     var expanded by remember { mutableStateOf(false) }
     var selectedText by remember(items) {
@@ -167,6 +167,8 @@ fun DropdownListView(
         }
     }
 }
+
+
 
 
 @Preview

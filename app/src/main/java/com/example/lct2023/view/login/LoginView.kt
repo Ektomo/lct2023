@@ -1,6 +1,7 @@
 package com.example.lct2023.view.login
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -34,8 +35,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.lct2023.R
+import com.example.lct2023.gate.model.user.Kno
+import com.example.lct2023.gate.model.user.KnoResponse
 import com.example.lct2023.ui.theme.interFontFamily
+import com.example.lct2023.util.toUserType
 import com.example.lct2023.view.ViewStateClass
+import com.example.lct2023.view.util.CustomListDropDownEntity
+import com.example.lct2023.view.util.DropdownListView
 import com.example.lct2023.view.util.LoadingView
 
 @Composable
@@ -57,6 +63,8 @@ fun LoginView(vm: LoginViewModel, pd: PaddingValues) {
                 LoadingView()
             }
             is ViewStateClass.Data -> {
+                login = st.data.name
+                pass = st.data.pass
                 BoxWithConstraints(
                     modifier = Modifier
                         .fillMaxSize(),
@@ -100,7 +108,7 @@ fun LoginView(vm: LoginViewModel, pd: PaddingValues) {
                             OutlinedTextField(
                                 value = pass,
                                 onValueChange = {
-                                   pass = it
+                                    pass = it
                                 },
                                 label = { Text(text = "Пароль") },
                                 placeholder = { Text(text = "Пароль") },
@@ -202,6 +210,9 @@ fun LoginView(vm: LoginViewModel, pd: PaddingValues) {
         }
 
     }
+    BackHandler(state is ViewStateClass.Error) {
+        vm.afterExceptionOnLogin()
+    }
 
 
 }
@@ -221,13 +232,24 @@ fun RegisterView(loginViewModel: LoginViewModel) {
     var lastName by remember {
         mutableStateOf("")
     }
+
+    var role by remember {
+        mutableStateOf("")
+    }
+
+    var kno: Kno? by remember {
+        mutableStateOf(null)
+    }
+
+
+
+
     val focusManager = LocalFocusManager.current
 
     BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize(),
     ) {
-
 
 
         Column(
@@ -249,6 +271,28 @@ fun RegisterView(loginViewModel: LoginViewModel) {
             )
             Spacer(modifier = Modifier.padding(20.dp))
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                DropdownListView(
+                    modifier = Modifier.fillMaxWidth(0.85f),
+                    itemModifier = Modifier,
+                    items = roleList,
+                    defaultText = "Выберите роль",
+                ) {
+                    if (it.name.toUserType() != null){
+                        role = it.name.toUserType()!!.name
+                    }
+                    it.name
+                }
+                AnimatedVisibility(visible = role == UserType.inspector.name) {
+                    DropdownListView(
+                        modifier = Modifier.fillMaxWidth(0.85f),
+                        itemModifier = Modifier,
+                        items = loginViewModel.knoList,
+                        defaultText = "Выберите КНО",
+                    ) {
+                        kno = it as Kno
+                        it.name
+                    }
+                }
                 OutlinedTextField(
                     value = user,
                     onValueChange = { user = it },
@@ -308,7 +352,9 @@ fun RegisterView(loginViewModel: LoginViewModel) {
                             userName = user,
                             pass = password,
                             firstName = firstName,
-                            lastName = lastName
+                            lastName = lastName,
+                            role = role,
+                            kno = kno?.id
                         )
                     })
                 )
@@ -324,6 +370,8 @@ fun RegisterView(loginViewModel: LoginViewModel) {
                                 pass = password,
                                 firstName = firstName,
                                 lastName = lastName,
+                                role = role,
+                                kno = kno?.id
                             )
                         },
                         shape = RoundedCornerShape(6.dp)
@@ -379,6 +427,14 @@ fun RegisterView(loginViewModel: LoginViewModel) {
     }
 }
 
+data class UserRole(
+    override val name: String
+): CustomListDropDownEntity
+
+val roleList = listOf(
+    UserRole(UserType.client.value),
+    UserRole(UserType.inspector.value)
+)
 
 @Preview
 @Composable
@@ -516,5 +572,13 @@ fun ForTest() {
         }
 
     }
+
+
 }
+
+enum class UserType(val value: String){
+    client("Клиент"), inspector("Инспектор")
+}
+
+
 

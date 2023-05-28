@@ -40,7 +40,7 @@ class ChatViewModel @Inject constructor(
     private val _state: MutableStateFlow<ViewStateClass<List<ChatMsgItem>>> = MutableStateFlow(ViewStateClass.Loading)
     val state = _state.asStateFlow()
 
-    private var msgs = mutableListOf<ChatMsgItem>()
+    private var msgs = mutableListOf(ChatMsgItem(MsgAuthor.Bot, "Задайте свой вопрос нажимая на микрофон или напишите его в поле внизу"))
 
 
     init {

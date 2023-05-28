@@ -2,10 +2,7 @@ package com.example.lct2023.view.util
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -13,16 +10,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import java.text.SimpleDateFormat
 import java.util.*
 
 
-data class Slots(
-    val slotList: List<Slot>
-)
 
 data class Slot(
     val date: Date,
@@ -30,24 +23,26 @@ data class Slot(
 )
 
 data class Time(
+    val id: Int,
     override val name: String
-) : DropDownItem
+) : CustomListDropDownEntity
 
 
 @Composable
-fun SlotCalendarView(slots: List<Slot>) {
+fun SlotCalendarView(slots: List<List<Slot>>, onSelect: (Date, Time) -> String) {
 
     val configuration = LocalConfiguration.current
     val screenWidth = configuration.screenWidthDp
     val widthItem = (screenWidth.toDouble()/3.15).dp
+    val format = SimpleDateFormat("dd EEE", Locale.getDefault())
 
-    val chSlots = slots.chunked(3)
+
 
     Column(modifier = Modifier.fillMaxSize()) {
-        chSlots.forEach { row ->
+        slots.forEach { row ->
             Row(modifier = Modifier.fillMaxWidth()) {
                 row.forEach {
-                    Item(slot = it, width = widthItem)
+                    Item(slot = it, width = widthItem, format, onSelect)
                 }
             }
 
@@ -85,8 +80,8 @@ fun SlotCalendarView(slots: List<Slot>) {
 
 //LLLL - месяц в именительном
 @Composable
-fun Item(slot: Slot, width: Dp) {
-    val format = SimpleDateFormat("dd EEE", Locale.getDefault())
+fun Item(slot: Slot, width: Dp, format: SimpleDateFormat, onSelect: (Date, Time) -> String) {
+
 //    val slot = Slot(Date(), listOf(Time("9:00-10:00"), Time("10:00-11:00")))
 
     Column(
@@ -114,6 +109,7 @@ fun Item(slot: Slot, width: Dp) {
         ) {
 
             it.name.replace("-", "\n")
+            onSelect(slot.date, it as Time)
         }
     }
 

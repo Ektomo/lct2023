@@ -1,8 +1,10 @@
 package com.example.lct2023.gate
 
+import com.example.lct2023.view.util.CustomListDropDownEntity
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.modules.SerializersModule
 import okhttp3.*
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -28,7 +30,7 @@ open class Gate {
         set(value) {
             passHolder[0] = value
         }
-    var baseUrl: String = "http://192.168.1.102:8000/users/"
+    var baseUrl: String = "http://194.67.125.245:5000/"
     private var tokenHolder = arrayOf("")
     private var userHolder = arrayOf("")
     private var passHolder = arrayOf("")
@@ -39,7 +41,9 @@ open class Gate {
     }
 
 
+
     val format = Json {
+        encodeDefaults = false
         prettyPrint = true//Удобно печатает в несколько строчек
         ignoreUnknownKeys = true// Неизвестные значение
         coerceInputValues = true// Позволяет кодировать в параметрах null
@@ -74,7 +78,7 @@ open class Gate {
         b.authenticator(
             TokenAuthenticator(
                 format,
-                baseUrl + "token",
+                baseUrl + "users/login",
                 userHolder,
                 passHolder,
                 tokenHolder
@@ -165,12 +169,12 @@ open class Gate {
         }
     }
 
-    private inline fun <reified T> makePatchRequest(url: String, body: T, query: Map<String, String> = mapOf()): String {
+    inline fun <reified T> makePatchRequest(url: String, body: T, query: Map<String, String> = mapOf()): String {
         val json = format.encodeToString(value = body)
         return makePatchRequestImpl(json, url, query)
     }
 
-    private fun makePatchRequestImpl(
+    fun makePatchRequestImpl(
         json: String,
         url: String,
         query: Map<String, String>

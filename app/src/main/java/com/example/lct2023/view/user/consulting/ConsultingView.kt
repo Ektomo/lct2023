@@ -1,6 +1,7 @@
 package com.example.lct2023.view.user.consulting
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.*
@@ -13,36 +14,102 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.lct2023.gate.model.user.ConsultTheme
+import com.example.lct2023.gate.model.user.ControlType
+import com.example.lct2023.gate.model.user.Kno
 import com.example.lct2023.ui.theme.ptSerifFontFamily
 import com.example.lct2023.view.ViewStateClass
-import com.example.lct2023.view.util.DropdownListView
 import com.example.lct2023.view.util.LoadingView
+import com.example.lct2023.view.util.SearchBoxView
 import com.example.lct2023.view.util.SlotCalendarView
+import com.example.lct2023.view.util.Time
+import java.text.SimpleDateFormat
 import java.util.*
 
 @Composable
 fun ConsultingView(vm: ConsultingViewModel) {
 
     val viewState by vm.state.collectAsState()
+    val configuration = LocalConfiguration.current
+    val screenWidth = configuration.screenWidthDp
+    val widthItem = (screenWidth.toDouble() / 3.15).dp
+    val format = SimpleDateFormat("dd MMMM в EEE", Locale.getDefault())
+
+
+
 
     Crossfade(targetState = viewState) { s ->
         when (s) {
             is ViewStateClass.Data -> {
                 var selectedKno: Kno? by remember {
-                    mutableStateOf(null)
+                    mutableStateOf(vm.kno)
                 }
 
 
+                var showDialog by remember {
+                    mutableStateOf(false)
+                }
+
                 var selectedControl: ControlType? by remember {
-                    mutableStateOf(null)
+                    mutableStateOf(vm.controlType)
                 }
 
                 var selectedTheme: ConsultTheme? by remember {
-                    mutableStateOf(null)
+                    mutableStateOf(vm.consult)
                 }
+
+                LaunchedEffect(selectedTheme){
+                    if(selectedKno != null && selectedControl != null && selectedTheme != null ){
+                        vm.loadFreeSlots(selectedKno!!.id)
+                    }
+                }
+
+                var selectedMonthIdx by remember {
+                    mutableStateOf(0)
+                }
+
+                var meetDate: Date by remember {
+                    mutableStateOf(Date())
+                }
+                var time: Time by remember {
+                    mutableStateOf(Time(-1, ""))
+                }
+
+//                        Box(modifier = Modifier.fillMaxWidth()) {
+//                            if (selectedMonthIdx > 0) {
+//                                IconButton(onClick = { selectedMonthIdx -= 1 }) {
+//                                    Icon(
+//                                        imageVector = Icons.Default.ArrowLeft,
+//                                        contentDescription = "",
+//                                        modifier = Modifier.align(BiasAlignment(0.8f, 0f))
+//                                    )
+//                                }
+//                            }
+
+                if (showDialog){
+                    AlertDialog(onDismissRequest = { showDialog = false }, title = {
+                        Text("Внимание")
+                    }, text = { Text(text = "Вы увереы что хотите записаться на видеовстречу в КНО ${selectedKno?.name ?: ""}\n" +
+                            "Вид контроля: ${selectedControl?.name ?: ""} на тему ${selectedTheme?.name ?: ""}\n" +
+                            "${format.format(meetDate) ?: ""} в ${time.name}")
+                    }, confirmButton = {
+                        Button(onClick = { showDialog = false
+                            vm.reserveMeet(selectedTheme!!.id, selectedTheme!!.id)
+                        }) {
+                            Text(text = "Отправить")
+                        }
+                    }, dismissButton = {
+                        Button(onClick = { showDialog = false }) {
+                            Text(text = "Отмена")
+                        }
+                    }
+                    )
+                }
+
 
                 LazyColumn(
                     contentPadding = PaddingValues(start = 8.dp, end = 8.dp, bottom = 70.dp),
@@ -63,86 +130,115 @@ fun ConsultingView(vm: ConsultingViewModel) {
                     }
 
                     item {
-                        Text(
-                            text = "Контрольно надзорный орган",
-                            fontFamily = ptSerifFontFamily,
-                            fontSize = 14.sp,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(bottom = 2.dp)
-                        )
-                        DropdownListView(
+//                        Text(
+//                            text = "Контрольно надзорный орган",
+//                            fontFamily = ptSerifFontFamily,
+//                            fontSize = 14.sp,
+//                            modifier = Modifier
+//                                .fillMaxWidth()
+//                                .padding(bottom = 2.dp)
+//                        )
+                        SearchBoxView(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(bottom = 8.dp),
-                            itemModifier = Modifier
-                                .fillMaxWidth(),
-                            items = s.data,
-                            defaultText = "Выберете КНО",
+                            list = s.data.first,
+                            labelText = "Выбрать КНО",
+                            defaultText = selectedKno?.name ?: "",
                             onSelect = {
+                                selectedKno = null
                                 selectedKno = it as Kno
+                                vm.kno = selectedKno
                                 selectedControl = null
-                                selectedKno?.name
-//                                selectedTheme = null
+                                selectedTheme = null
+                                vm.controlType = null
+                            }, onClearClick = {
+                                selectedKno = null
+                                vm.kno = null
+                                selectedTheme = null
+                                selectedControl = null
+                                vm.controlType = null
                             })
                     }
 
-                    item {
-                        Text(
-                            text = "Тип контроля",
-                            fontFamily = ptSerifFontFamily,
-                            fontSize = 14.sp,
-
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(bottom = 2.dp)
-                        )
-                        DropdownListView(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(bottom = 8.dp),
-                            itemModifier = Modifier
-                                .fillMaxWidth(),
-                            items = selectedKno?.controlList ?: listOf(),
-                            defaultText = "Необходимо выбрать КНО"
-                        ) {
-                            selectedControl = it as ControlType
-                            selectedControl?.name
-//                            selectedTheme = null
-                        }
 
 
-                    }
 
                     item {
-                        Text(
-                            text = "Тема консультации",
-                            fontFamily = ptSerifFontFamily,
-                            fontSize = 14.sp,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(bottom = 2.dp)
-                        )
-                        DropdownListView(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(bottom = 8.dp),
-                            itemModifier = Modifier
-                                .fillMaxWidth(),
-                            items = selectedControl?.themeList ?: listOf(),
-                            defaultText = "Необходимо выбрать тип контроля"
-                        ) {
-                            selectedTheme = it as ConsultTheme
-                            selectedControl?.name
+                        AnimatedVisibility(visible = selectedKno != null) {
+
+//                            Text(
+//                                text = "Тип контроля",
+//                                fontFamily = ptSerifFontFamily,
+//                                fontSize = 14.sp,
+//
+//                                modifier = Modifier
+//                                    .fillMaxWidth()
+//                                    .padding(bottom = 2.dp)
+//                            )
+                            SearchBoxView(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(bottom = 8.dp),
+                                labelText = "Тип контроля",
+                                list = selectedKno?.visions ?: listOf(),
+                                defaultText = selectedControl?.name ?: "",
+                                onSelect = {
+                                    selectedControl = null
+                                    selectedControl = it as ControlType
+                                    vm.controlType = selectedControl
+//                                    selectedTheme = null
+////                                selectedTheme = null
+//                                selectedKno?.name
+////                                selectedTheme = null
+                                }, onClearClick = {
+                                    selectedControl = null
+                                    vm.controlType = null
+                                }
+                            )
+
                         }
 
                     }
 
+
+
+                    item {
+                        AnimatedVisibility(visible = selectedKno != null && selectedControl != null) {
+
+
+//                            Text(
+//                                text = "Тема консультации",
+//                                fontFamily = ptSerifFontFamily,
+//                                fontSize = 14.sp,
+//                                modifier = Modifier
+//                                    .fillMaxWidth()
+//                                    .padding(bottom = 2.dp)
+//                            )
+                            SearchBoxView(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(bottom = 8.dp),
+                                labelText = "Тема консультации",
+                                defaultText = selectedTheme?.name ?: "",
+                                list = s.data.second,
+                                onClearClick = {
+                                    vm.consult = null
+                                    selectedTheme = null
+                                }
+                            ) {
+                                selectedTheme = it as ConsultTheme
+                                vm.consult = selectedTheme
+                            }
+
+                        }
+                    }
 
 //                    if (selectedKno != null && selectedControl != null && selectedTheme != null) {
-                        item {
-
-
+                    item {
+                        if (vm.slots.isNotEmpty() && selectedTheme != null) {
+//                        if (selectedKno != null && selectedControl != null && selectedTheme != null) {
+                            val name =  vm.slotsOrder[selectedMonthIdx].second.drop(3)
                             Spacer(Modifier.padding(8.dp))
                             Text(
                                 text = "Свободные слоты",
@@ -155,22 +251,6 @@ fun ConsultingView(vm: ConsultingViewModel) {
 
                             Spacer(Modifier.padding(4.dp))
 
-
-                            var selectedMonthIdx by remember {
-                                mutableStateOf(0)
-                            }
-
-//                        Box(modifier = Modifier.fillMaxWidth()) {
-//                            if (selectedMonthIdx > 0) {
-//                                IconButton(onClick = { selectedMonthIdx -= 1 }) {
-//                                    Icon(
-//                                        imageVector = Icons.Default.ArrowLeft,
-//                                        contentDescription = "",
-//                                        modifier = Modifier.align(BiasAlignment(0.8f, 0f))
-//                                    )
-//                                }
-//                            }
-                            val name = vm.slotsOrder[selectedMonthIdx].second.drop(3)
 
                             TextField(
                                 modifier = Modifier
@@ -220,29 +300,19 @@ fun ConsultingView(vm: ConsultingViewModel) {
                                 }
 
                             )
-
-
-                            SlotCalendarView(vm.slots[vm.slotsOrder[selectedMonthIdx].second]!!)
                         }
-
-//                            Text(
-//                                text = name, modifier = Modifier.align(BiasAlignment(0f, 0f))
-//                            )
-
-//                            if (selectedMonthIdx < vm.slotsOrder.size - 1) {
-//                                IconButton(onClick = { selectedMonthIdx += 1 }) {
-//                                    Icon(
-//                                        imageVector = Icons.Default.ArrowRight,
-//                                        contentDescription = "",
-//                                        modifier = Modifier.align(BiasAlignment(1.2f, 0f))
-//                                    )
-//                                }
-//                            }
-//                        }
-
-
 //
-//                    }
+                        AnimatedVisibility(visible = vm.slots.isNotEmpty() && selectedTheme != null) {
+
+
+                            SlotCalendarView(vm.slots[vm.slotsOrder[selectedMonthIdx].second]!!){ d, t ->
+                                meetDate = d
+                                time = t
+                                showDialog = true
+                                "Время"
+                            }
+                        }
+                    }
                 }
 
 
@@ -257,6 +327,7 @@ fun ConsultingView(vm: ConsultingViewModel) {
 
 
     BackHandler(viewState is ViewStateClass.Error) {
+        vm.consult = null
         vm.loadList()
     }
 }

@@ -23,4 +23,8 @@ class ApprovedListViewModel@Inject constructor(
         data class Data(val data: List<InspectorWaitListResponse>) : State()
     }
 
+    fun loadList(){
+
+    }
+
 }

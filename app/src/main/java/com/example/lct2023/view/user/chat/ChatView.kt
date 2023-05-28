@@ -29,7 +29,7 @@ import com.example.lct2023.view.util.LoadingView
 import kotlinx.coroutines.launch
 import java.util.*
 
-@OptIn(ExperimentalAnimationApi::class)
+
 @Composable
 fun ChatView(vm: ChatViewModel, paddingValues: PaddingValues) {
 

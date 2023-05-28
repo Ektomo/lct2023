@@ -50,14 +50,14 @@ fun ProfileView(vm: ProfileViewModel) {
         LCRow(header = "Основной ОКВЭД:", value =  "12.123(Вратарь)")
         LCRow(header = "Дополнительные ОКВЭД:", value =  "23.12312(Пошив ткани), 123.1267(Аренда хлебобулочных изделий), 234.1233(Ремонт)")
 
-        Button(onClick = {
-
-        },
-            modifier = Modifier.align(Alignment.End).padding(top = 16.dp),
-            shape = RoundedCornerShape(6.dp)
-        ) {
-            Text(text = "Редактировать")
-        }
+//        Button(onClick = {
+//
+//        },
+//            modifier = Modifier.align(Alignment.End).padding(top = 16.dp),
+//            shape = RoundedCornerShape(6.dp)
+//        ) {
+//            Text(text = "Редактировать")
+//        }
 
     }
 
