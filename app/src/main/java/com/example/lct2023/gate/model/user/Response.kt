@@ -43,12 +43,10 @@ data class ConsultTheme(
 ): CustomListDropDownEntity
 
 
-@kotlinx.serialization.Serializable
-data class SlotResponse(
-    val id: Int,
-    val name: String,
-    val open_slots: List<OpenSlotResponse>
-)
+//@kotlinx.serialization.Serializable
+//data class SlotResponse(
+//    List<OpenSlotResponse>
+//)
 
 @kotlinx.serialization.Serializable
 data class OpenSlotResponse(

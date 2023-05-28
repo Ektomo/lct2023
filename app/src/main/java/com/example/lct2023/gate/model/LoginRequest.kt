@@ -11,6 +11,12 @@ data class RegisterRequestBody(
 )
 
 @kotlinx.serialization.Serializable
+data class ReserveMeetRequest(
+    val slot_id: String,
+    val topic_id: String
+)
+
+@kotlinx.serialization.Serializable
 data class UserResponseBody(
 //    val id: Long,
     val username: String,

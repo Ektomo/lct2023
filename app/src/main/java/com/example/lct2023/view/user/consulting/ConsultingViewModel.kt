@@ -38,6 +38,7 @@ class ConsultingViewModel @Inject constructor(
     var kno: Kno? = null
     var controlType: ControlType? = null
     var consult: ConsultTheme? = null
+    var showOk = MutableStateFlow(false)
 
 
     init {
@@ -115,6 +116,7 @@ class ConsultingViewModel @Inject constructor(
                 _state.update {
                     tempState
                 }
+                showOk.update { true }
                 //Записать данные на случай ошибки в переменную массива
             }catch (e: Exception){
                 _state.update {

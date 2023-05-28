@@ -27,6 +27,7 @@ import com.example.lct2023.view.util.LoadingView
 import com.example.lct2023.view.util.SearchBoxView
 import com.example.lct2023.view.util.SlotCalendarView
 import com.example.lct2023.view.util.Time
+import kotlinx.coroutines.flow.update
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -38,7 +39,7 @@ fun ConsultingView(vm: ConsultingViewModel) {
     val screenWidth = configuration.screenWidthDp
     val widthItem = (screenWidth.toDouble() / 3.15).dp
     val format = SimpleDateFormat("dd MMMM в EEE", Locale.getDefault())
-
+    val showOk by vm.showOk.collectAsState()
 
 
 
@@ -63,7 +64,7 @@ fun ConsultingView(vm: ConsultingViewModel) {
                 }
 
                 LaunchedEffect(selectedTheme){
-                    if(selectedKno != null && selectedControl != null && selectedTheme != null ){
+                    if(selectedKno != null && selectedControl != null && selectedTheme != null && vm.slots.isEmpty()){
                         vm.loadFreeSlots(selectedKno!!.id)
                     }
                 }
@@ -98,7 +99,7 @@ fun ConsultingView(vm: ConsultingViewModel) {
                             "${format.format(meetDate) ?: ""} в ${time.name}")
                     }, confirmButton = {
                         Button(onClick = { showDialog = false
-                            vm.reserveMeet(selectedTheme!!.id, selectedTheme!!.id)
+                            vm.reserveMeet(time.id, selectedTheme!!.id)
                         }) {
                             Text(text = "Отправить")
                         }
@@ -108,6 +109,16 @@ fun ConsultingView(vm: ConsultingViewModel) {
                         }
                     }
                     )
+                }
+                
+                if(showOk){
+                    AlertDialog(onDismissRequest = {vm.showOk.update { false }}, text = { Text(text = "Вы успешно записались")}, confirmButton = {
+                        Button(onClick = {vm.showOk.update { false }}) {
+                            Text(text = "Отлично")
+                        }
+                    })
+                        
+
                 }
 
 
@@ -152,12 +163,14 @@ fun ConsultingView(vm: ConsultingViewModel) {
                                 selectedControl = null
                                 selectedTheme = null
                                 vm.controlType = null
+                                vm.slots = mapOf()
                             }, onClearClick = {
                                 selectedKno = null
                                 vm.kno = null
                                 selectedTheme = null
                                 selectedControl = null
                                 vm.controlType = null
+                                vm.slots = mapOf()
                             })
                     }
 
@@ -187,6 +200,7 @@ fun ConsultingView(vm: ConsultingViewModel) {
                                     selectedControl = null
                                     selectedControl = it as ControlType
                                     vm.controlType = selectedControl
+                                    vm.slots = mapOf()
 //                                    selectedTheme = null
 ////                                selectedTheme = null
 //                                selectedKno?.name
@@ -194,6 +208,7 @@ fun ConsultingView(vm: ConsultingViewModel) {
                                 }, onClearClick = {
                                     selectedControl = null
                                     vm.controlType = null
+                                    vm.slots = mapOf()
                                 }
                             )
 
@@ -225,10 +240,12 @@ fun ConsultingView(vm: ConsultingViewModel) {
                                 onClearClick = {
                                     vm.consult = null
                                     selectedTheme = null
+
                                 }
                             ) {
                                 selectedTheme = it as ConsultTheme
                                 vm.consult = selectedTheme
+
                             }
 
                         }
