@@ -17,10 +17,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.lct2023.R
-import com.example.lct2023.view.inspector.approved_list.ApprovedListView
-import com.example.lct2023.view.inspector.approved_list.ApprovedListViewModel
-import com.example.lct2023.view.inspector.waiting_list.WaitListView
-import com.example.lct2023.view.inspector.waiting_list.WaitListViewModel
+import com.example.lct2023.view.inspector.approved_list.WaitingListView
+import com.example.lct2023.view.inspector.approved_list.WaitingViewModel
+import com.example.lct2023.view.inspector.waiting_list.AppointListView
+import com.example.lct2023.view.inspector.waiting_list.AppointListViewModel
 
 
 sealed class InspectorBottomMenuItem(var title: String, var icon: Int,var screen_route: String){
@@ -40,13 +40,14 @@ fun InspectorNavigationGraph(navController: NavHostController, paddingValues: Pa
     NavHost(navController, startDestination = InspectorBottomMenuItem.ApprovedList.screen_route){
 
         composable(InspectorBottomMenuItem.WaitList.screen_route){
-            val vm = hiltViewModel<WaitListViewModel>()
-            WaitListView(vm = vm)
+            val vm = hiltViewModel<WaitingViewModel>()
+            WaitingListView(vm = vm)
+
         }
 
         composable(InspectorBottomMenuItem.ApprovedList.screen_route){
-            val vm = hiltViewModel<ApprovedListViewModel>()
-            ApprovedListView(vm = vm)
+            val vm = hiltViewModel<AppointListViewModel>()
+            AppointListView(vm = vm)
         }
 
     }

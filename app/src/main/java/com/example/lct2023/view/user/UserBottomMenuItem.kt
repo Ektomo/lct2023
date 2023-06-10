@@ -17,11 +17,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.lct2023.R
-import com.example.lct2023.view.inspector.InspectorBottomMenuItem
-import com.example.lct2023.view.inspector.approved_list.ApprovedListView
-import com.example.lct2023.view.inspector.approved_list.ApprovedListViewModel
-import com.example.lct2023.view.inspector.waiting_list.WaitListView
-import com.example.lct2023.view.inspector.waiting_list.WaitListViewModel
 import com.example.lct2023.view.user.chat.ChatView
 import com.example.lct2023.view.user.chat.ChatViewModel
 import com.example.lct2023.view.user.consulting.ConsultingView
@@ -53,7 +48,7 @@ fun UserNavigationGraph(navController: NavHostController, paddingValues: Padding
 
         composable(UserBottomMenuItem.ChatBot.screen_route){
             val vm = hiltViewModel<ChatViewModel>()
-            ChatView(vm = vm, paddingValues)
+            ChatView(vm = vm, navController, paddingValues)
         }
 
         composable(UserBottomMenuItem.Consulting.screen_route){

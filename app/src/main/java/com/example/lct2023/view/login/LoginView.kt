@@ -272,7 +272,7 @@ fun RegisterView(loginViewModel: LoginViewModel) {
             Spacer(modifier = Modifier.padding(20.dp))
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 DropdownListView(
-                    modifier = Modifier.fillMaxWidth(0.85f),
+                    modifier = Modifier.fillMaxWidth(0.825f),
                     itemModifier = Modifier,
                     items = roleList,
                     defaultText = "Выберите роль",
@@ -283,8 +283,9 @@ fun RegisterView(loginViewModel: LoginViewModel) {
                     it.name
                 }
                 AnimatedVisibility(visible = role == UserType.inspector.name) {
+
                     DropdownListView(
-                        modifier = Modifier.fillMaxWidth(0.85f),
+                        modifier = Modifier.fillMaxWidth(0.825f).padding(top = 8.dp),
                         itemModifier = Modifier,
                         items = loginViewModel.knoList,
                         defaultText = "Выберите КНО",

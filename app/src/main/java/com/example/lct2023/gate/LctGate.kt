@@ -30,7 +30,8 @@ class LctGate : Gate() {
     }
 
     fun getSlots(knoId: Int): List<Slot> {
-        val answer = makeGetRequest("slots/opened_list", mapOf("supervisor_id" to "$knoId"))
+        val answer = makeGetRequest("slots/opened/$knoId")
+//            mapOf("supervisor_id" to "$knoId"))
         val slots = format.decodeFromString<List<OpenSlotResponse>>(answer)
         val formatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
         val mapResult = mutableMapOf<Date, MutableList<Time>>()

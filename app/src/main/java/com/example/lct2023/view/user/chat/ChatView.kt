@@ -2,8 +2,9 @@ package com.example.lct2023.view.user.chat
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.Crossfade
-import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -19,19 +20,21 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.navigation.NavController
 import com.example.lct2023.view.ViewStateClass
+import com.example.lct2023.view.user.UserBottomMenuItem
 import com.example.lct2023.view.util.LoadingView
 import kotlinx.coroutines.launch
 import java.util.*
 
 
 @Composable
-fun ChatView(vm: ChatViewModel, paddingValues: PaddingValues) {
+fun ChatView(vm: ChatViewModel, navController: NavController, paddingValues: PaddingValues) {
 
     val viewState by vm.state.collectAsState()
 
@@ -69,9 +72,29 @@ fun ChatView(vm: ChatViewModel, paddingValues: PaddingValues) {
                         state = listState
                     ) {
 
-                        s.data.forEach { msg ->
+                        s.data.forEachIndexed { idx, msg ->
+//                            val beforeBotMsg = if (idx > 0) {
+//                                s.data[idx - 1].author == MsgAuthor.Bot
+//                                        || (msg.author == MsgAuthor.Bot && idx == s.data.size - 1)
+//                                        || (msg.author == MsgAuthor.Bot && idx < s.data.size + 1 && s.data[idx + 1].author == MsgAuthor.User)
+//                            } else {
+//                                false
+//                            }
                             item {
-                                MsgItemView(msg = msg, width = maxWidth / 3 * 2)
+                                MsgItemView(
+                                    msg = msg,
+                                    showBotIcon = (msg.author == MsgAuthor.Bot),
+                                    width = maxWidth / 3 * 2
+                                ) {
+                                    if (msg.msg.contains("Нажмите")) {
+                                        navController.navigate(UserBottomMenuItem.Consulting.screen_route)
+                                    } else {
+                                        vm.mockSecondQuestion(msg)
+                                    }
+                                }
+                                if (msg.msg.contains("Нажмите")) {
+                                    Divider(modifier = Modifier.fillMaxWidth())
+                                }
                             }
                         }
 
@@ -158,10 +181,9 @@ fun ChatView(vm: ChatViewModel, paddingValues: PaddingValues) {
 
                         IconButton(onClick = {
                             if (text.isNotEmpty()) {
-                                vm.sendMsg(
+                                vm.mockFirstQuestion(
                                     ChatMsgItem(
-                                        MsgAuthor.User,
-                                        text
+                                        MsgAuthor.User, text
                                     )
                                 )
                             } else {
@@ -197,7 +219,9 @@ fun ChatView(vm: ChatViewModel, paddingValues: PaddingValues) {
 
 
 @Composable
-fun MsgItemView(msg: ChatMsgItem, width: Dp) {
+fun MsgItemView(msg: ChatMsgItem, showBotIcon: Boolean, width: Dp, onBotMsgClick: () -> Unit) {
+
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -205,7 +229,7 @@ fun MsgItemView(msg: ChatMsgItem, width: Dp) {
         verticalAlignment = Alignment.Bottom,
         horizontalArrangement = if (msg.author == MsgAuthor.Bot) Arrangement.Start else Arrangement.End
     ) {
-        if (msg.author == MsgAuthor.Bot) {
+        if (showBotIcon) {
             Icon(
                 imageVector = Icons.Filled.SmartToy,
                 contentDescription = "",
@@ -213,92 +237,101 @@ fun MsgItemView(msg: ChatMsgItem, width: Dp) {
             )
         }
 
-        Text(
-            text = msg.msg,
-            modifier = Modifier
-                .width(width)
+        val m = Modifier
 
-                .background(
-                    if (msg.author == MsgAuthor.Bot) {
-                        Color(0xFFD9F5F5)
-                    } else {
-                        Color(0xFFE4E6E6)
-                    },
-                    if (msg.author == MsgAuthor.Bot) {
-                        RoundedCornerShape(16.dp, 16.dp, 16.dp, 0.dp)
-                    } else {
-                        RoundedCornerShape(16.dp, 16.dp, 0.dp, 16.dp)
-                    }
-                )
-                .padding(8.dp)
-        )
+        if (msg.author == MsgAuthor.Bot) {
+            m.clickable {
+                onBotMsgClick()
+            }
+        }
+
+        Text(text = msg.msg, modifier = Modifier
+            .width(width)
+
+            .background(
+                if (msg.author == MsgAuthor.Bot) {
+                    Color(0xFFD9F5F5)
+                } else {
+                    Color(0xFFE4E6E6)
+                }, if (msg.author == MsgAuthor.Bot) {
+                    RoundedCornerShape(16.dp, 16.dp, 16.dp, 0.dp)
+                } else {
+                    RoundedCornerShape(16.dp, 16.dp, 0.dp, 16.dp)
+                }
+            )
+            .padding(8.dp)
+            .pointerInput(Unit) {
+                if (msg.author == MsgAuthor.Bot) {
+                    detectTapGestures(onTap = { onBotMsgClick() })
+                }
+            })
     }
 
 }
 
-@Preview
-@Composable
-fun Preview_Chat() {
-
-    val msgs = remember {
-        mutableStateListOf(
-            ChatMsgItem(MsgAuthor.Bot, "Hello", Date()),
-            ChatMsgItem(MsgAuthor.Bot, "World", Date()),
-            ChatMsgItem(MsgAuthor.User, "Hi", Date()),
-            ChatMsgItem(MsgAuthor.Bot, "Wow", Date()),
-        )
-    }
-
-    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(bottom = 64.dp)
-                .align(Alignment.BottomCenter), contentPadding = PaddingValues(horizontal = 8.dp)
-        ) {
-
-            msgs.forEach { msg ->
-                item {
-                    MsgItemView(msg = msg, width = maxWidth / 3 * 2)
-                }
-            }
-
-        }
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(Color(MaterialTheme.colors.primary.value))
-                .shadow(2.dp)
-                .align(Alignment.BottomCenter),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-
-            var text by remember {
-                mutableStateOf("")
-            }
-
-            OutlinedTextField(
-                value = text,
-                onValueChange = { text = it },
-                modifier = Modifier.padding(vertical = 4.dp, horizontal = 8.dp),
-                shape = RoundedCornerShape(24.dp),
-                colors = TextFieldDefaults.outlinedTextFieldColors(
-                    backgroundColor = Color.White
-                ),
-                placeholder = {
-                    Text("Введите ваш вопрос")
-                }
-            )
-            Icon(
-                imageVector = Icons.Default.Send,
-                contentDescription = "",
-                modifier = Modifier.padding(8.dp)
-            )
-        }
-    }
-
-}
-
-
+//@Preview
+//@Composable
+//fun Preview_Chat() {
+//
+//    val msgs = remember {
+//        mutableStateListOf(
+//            ChatMsgItem(MsgAuthor.Bot, "Hello", Date()),
+//            ChatMsgItem(MsgAuthor.Bot, "World", Date()),
+//            ChatMsgItem(MsgAuthor.User, "Hi", Date()),
+//            ChatMsgItem(MsgAuthor.Bot, "Wow", Date()),
+//        )
+//    }
+//
+//    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+//        LazyColumn(
+//            modifier = Modifier
+//                .fillMaxSize()
+//                .padding(bottom = 64.dp)
+//                .align(Alignment.BottomCenter), contentPadding = PaddingValues(horizontal = 8.dp)
+//        ) {
+//
+//            msgs.forEach { msg ->
+//                item {
+//                    MsgItemView(msg = msg, width = maxWidth / 3 * 2) {}
+//                }
+//            }
+//
+//        }
+//
+//        Row(
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .background(Color(MaterialTheme.colors.primary.value))
+//                .shadow(2.dp)
+//                .align(Alignment.BottomCenter),
+//            horizontalArrangement = Arrangement.SpaceBetween,
+//            verticalAlignment = Alignment.CenterVertically
+//        ) {
+//
+//            var text by remember {
+//                mutableStateOf("")
+//            }
+//
+//            OutlinedTextField(
+//                value = text,
+//                onValueChange = { text = it },
+//                modifier = Modifier.padding(vertical = 4.dp, horizontal = 8.dp),
+//                shape = RoundedCornerShape(24.dp),
+//                colors = TextFieldDefaults.outlinedTextFieldColors(
+//                    backgroundColor = Color.White
+//                ),
+//                placeholder = {
+//                    Text("Введите ваш вопрос")
+//                }
+//            )
+//            Icon(
+//                imageVector = Icons.Default.Send,
+//                contentDescription = "",
+//                modifier = Modifier.padding(8.dp)
+//            )
+//        }
+//    }
+//
+//}
+//
+//

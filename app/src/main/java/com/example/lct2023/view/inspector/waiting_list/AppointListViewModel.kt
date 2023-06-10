@@ -1,42 +1,36 @@
-package com.example.lct2023.view.inspector.approved_list
+package com.example.lct2023.view.inspector.waiting_list
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.lct2023.LctDataStore
-import com.example.lct2023.gate.Gate
 import com.example.lct2023.gate.LctGate
-import com.example.lct2023.gate.model.inspector.InspectorWaitListResponse
+import com.example.lct2023.gate.model.user.OpenSlotResponse
 import com.example.lct2023.view.ViewStateClass
-import com.example.lct2023.view.user.chat.ChatMsgItem
-import com.example.lct2023.view.user.chat.MsgAuthor
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.util.*
 import javax.inject.Inject
 
 @HiltViewModel
-class ApprovedListViewModel@Inject constructor(
-    private val dataStore: LctDataStore,
+class AppointListViewModel @Inject constructor(
     private val gate: LctGate
 ): ViewModel() {
 
 
-    private val _state: MutableStateFlow<ViewStateClass<List<InspectorWaitListResponse>>> = MutableStateFlow(
+    private val _state: MutableStateFlow<ViewStateClass<List<OpenSlotResponse>>> = MutableStateFlow(
         ViewStateClass.Loading)
     val state = _state.asStateFlow()
 
-init {
-    loadList()
-}
+    init {
+        loadList()
+    }
 
     sealed class State {
         object Loading : State()
         data class Error(val e: Exception) : State()
-        data class Data(val data: List<InspectorWaitListResponse>) : State()
+        data class Data(val data: List<OpenSlotResponse>) : State()
     }
 
 
@@ -46,7 +40,12 @@ init {
             try{
 
                 _state.value = ViewStateClass.Loading
-                gate.getApprovedList()
+//                _state.update {
+//                    ViewStateClass.Data(gate.getApprovedList())
+//                }
+                _state.update {
+                    ViewStateClass.Data(listOf())
+                }
 //                    _state.value = ViewStateClass.Data()
 
             }catch(e: Exception){
@@ -57,3 +56,5 @@ init {
     }
 
 }
+
+
